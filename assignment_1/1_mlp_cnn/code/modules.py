@@ -26,10 +26,18 @@ class LinearModule(object):
         """
         
         ########################
-        # PUT YOUR CODE HERE  #
+        # PUT YOUR CODE HERE  # 
         #######################
-
-        raise NotImplementedError
+        self.params = {
+          'weight' : np.random.normal(0, 0.0001, (out_features, in_features)),    # W is N x M, where N is output, M is input
+          'bias' : np.zeros(out_features)     # b is 1 x N, B is S x N
+        }
+        self.grads = {
+          'W' : np.zeros(shape=(out_features,in_features)),
+          'b' : np.zeros(shape=(1,out_features))
+        }
+        self.X = None
+        self.S = None
         
         ########################
         # END OF YOUR CODE    #
@@ -53,8 +61,10 @@ class LinearModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
+        self.X = x
+        self.S = x.shape[0]
+        B = np.tile(self.params['bias'], reps=(self.S,1))
+        out = self.X @ self.params['weight'].T + B
         
         ########################
         # END OF YOUR CODE    #
@@ -79,9 +89,9 @@ class LinearModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-        
+        self.grads['weight'] = dout.T @ self.X
+        self.grads['bias'] = np.ones(shape=(1,self.S)) @ dout
+        dx = dout @ self.params['weight']
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -94,6 +104,12 @@ class SoftMaxModule(object):
     Softmax activation module.
     """
     
+    def __init__(self):
+        """
+        Store intermediate variable Y
+        """
+        self.Y = None
+
     def forward(self, x):
         """
         Forward pass.
@@ -112,9 +128,9 @@ class SoftMaxModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-        
+        out = np.exp(x - x.max())
+        out = out / np.einsum('ij->i', out).reshape(out.shape[0], 1)
+        self.Y = out
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -136,9 +152,8 @@ class SoftMaxModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-        
+        product = dout * self.Y
+        dx = product - np.einsum('ij->i', product).reshape(product.shape[0], 1) * self.Y
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -151,6 +166,12 @@ class CrossEntropyModule(object):
     Cross entropy loss module.
     """
     
+    def __init__(self):
+        """
+        Store intermediate variable Y
+        """
+        self.S = None
+
     def forward(self, x, y):
         """
         Forward pass.
@@ -167,9 +188,8 @@ class CrossEntropyModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-        
+        self.S = x.shape[0]
+        out = -1 * np.sum(y.reshape(x.shape[1],1) * np.log(x)) / self.S # reshape in case y not column vector
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -192,9 +212,7 @@ class CrossEntropyModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-        
+        dx = -1 * np.tile(y, reps=(self.S,1)) / x / self.S
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -224,9 +242,8 @@ class ELUModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-        
-        raise NotImplementedError
-        
+        h = np.vectorize(lambda x: x if x > 0 else np.exp(x) - 1)
+        out = h(x)
         ########################
         # END OF YOUR CODE    #
         #######################
@@ -248,10 +265,38 @@ class ELUModule(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
-
-        raise NotImplementedError
-
+        dhdx = np.vectorize(lambda x: 1 if x > 0 else np.exp(x))
+        out = dhdx(x)
         ########################
         # END OF YOUR CODE    #
         #######################
         return dx
+
+if __name__ == '__main__':
+  M = 3
+  N = 2
+  S = 6
+  C = 4
+  # module = LinearModule(M,N)
+  # x = np.ones(shape=(S,M))
+  # y = np.ones(shape=(S,N))
+  # print("grads", module.grads)
+  # print("params", module.params)
+  # print("forward", module.forward(x).shape, module.forward(x))
+  # print("backward", module.backward(y).shape, module.backward(y))
+  # module_sm = SoftMaxModule()
+  # print(module_sm.forward(np.ones(shape=(S,C))))
+  # print(module_sm.backward(np.ones(shape=(S,C))))
+  # y = np.ones(shape=(S,N))
+  z = np.exp(np.ones(shape=(S,N)))
+  z[0,1] = -5
+  # print(np.sum(y))
+  # arr = np.array([1, 2, 3])
+  # type(arr)
+  # scale = lambda x: x * 3 if (x > 2) else x / 3
+  # func = np.vectorize(lambda x: x * 3 if x > 2 else x / 3)
+  # print(func(arr))
+  module_ELU = ELUModule()
+  print(module_ELU.forward(z))
+
+

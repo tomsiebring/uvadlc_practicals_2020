@@ -37,6 +37,20 @@ class MLP(object):
         ########################
         # PUT YOUR CODE HERE  #
         #######################
+        linear_layers = []
+        input_size = n_inputs
+        output_size = n_classes
+        for layer_units in n_hidden:
+          output_size = layer_units
+          linear_layers.append(LinearModule(input_size, layer_units))
+          input_size = layer_units
+
+
+
+        # n_inputs = M
+        # n_hidden = list of ints
+        # n_classes = C
+
         raise NotImplementedError
         ########################
         # END OF YOUR CODE    #
